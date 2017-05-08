@@ -487,6 +487,9 @@ class DruidConnectionImpl implements DruidConnection {
           try {
             druidType = DruidType.valueOf(entry.getValue().type);
           } catch (IllegalArgumentException e) {
+            if(CalcitePrepareImpl.DEBUG){
+              System.out.println("Druid type not supported: '" + entry.getValue().type + "' for column: '" + entry.getKey() + "'");
+            }
             // ignore exception; not a supported type
             continue;
           }
@@ -641,6 +644,9 @@ class DruidConnectionImpl implements DruidConnection {
       if (type.equals("hyperUnique")) {
         return DruidType.hyperUnique;
       }
+      if(type.equals("thetaSketch")){
+        return DruidType.thetaSketch;
+      }
       throw new AssertionError("unknown type " + type);
     }
   }
@@ -652,7 +658,8 @@ class DruidConnectionImpl implements DruidConnection {
     // people find FLOAT confusing.
     FLOAT(SqlTypeName.DOUBLE),
     STRING(SqlTypeName.VARCHAR),
-    hyperUnique(SqlTypeName.VARBINARY);
+    hyperUnique(SqlTypeName.VARBINARY),
+    thetaSketch(SqlTypeName.VARBINARY);
 
     /** The corresponding SQL type. */
     public final SqlTypeName sqlType;
