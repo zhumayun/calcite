@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.apache.calcite.adapter.druid.DruidConnectionImpl.DruidType;
+
 /**
  * Implementation of {@link TableFactory} for Druid.
  *
@@ -49,6 +51,7 @@ public class DruidTableFactory implements TableFactory {
     final String dataSource = (String) operand.get("dataSource");
     final Set<String> metricNameBuilder = new LinkedHashSet<>();
     final Map<String, SqlTypeName> fieldBuilder = new LinkedHashMap<>();
+    final Map<String, DruidType> typeBuilder = new LinkedHashMap<>();
     final String timestampColumnName;
     if (operand.get("timestampColumn") != null) {
       timestampColumnName = (String) operand.get("timestampColumn");
@@ -70,13 +73,14 @@ public class DruidTableFactory implements TableFactory {
       for (Object metric : metrics) {
         final SqlTypeName sqlTypeName;
         final String metricName;
+        final String metricField;
         if (metric instanceof Map) {
           Map map2 = (Map) metric;
           if (!(map2.get("name") instanceof String)) {
             throw new IllegalArgumentException("metric must have name");
           }
           metricName = (String) map2.get("name");
-
+          metricField = (String) map2.get("fieldName");
           final Object type = map2.get("type");
           if ("long".equals(type)) {
             sqlTypeName = SqlTypeName.BIGINT;
@@ -85,6 +89,9 @@ public class DruidTableFactory implements TableFactory {
           } else {
             sqlTypeName = SqlTypeName.BIGINT;
           }
+          typeBuilder.put(metricField != null ? metricField
+                  : metricName,
+                  DruidType.valueOf((String) type));
         } else {
           metricName = (String) metric;
           sqlTypeName = SqlTypeName.BIGINT;
@@ -108,7 +115,7 @@ public class DruidTableFactory implements TableFactory {
       intervals = null;
     }
     return DruidTable.create(druidSchema, dataSourceName, intervals,
-        fieldBuilder, metricNameBuilder, timestampColumnName, c);
+        fieldBuilder, metricNameBuilder, timestampColumnName, c, typeBuilder);
   }
 
 }

@@ -459,7 +459,8 @@ class DruidConnectionImpl implements DruidConnection {
   /** Reads segment metadata, and populates a list of columns and metrics. */
   void metadata(String dataSourceName, String timestampColumnName,
       List<LocalInterval> intervals,
-      Map<String, SqlTypeName> fieldBuilder, Set<String> metricNameBuilder) {
+      Map<String, SqlTypeName> fieldBuilder, Set<String> metricNameBuilder,
+      Map<String, DruidType> columnTypeMap) {
     final String url = this.url + "/druid/v2/?pretty";
     final Map<String, String> requestHeaders =
         ImmutableMap.of("Content-Type", "application/json");
@@ -491,6 +492,7 @@ class DruidConnectionImpl implements DruidConnection {
             continue;
           }
           fieldBuilder.put(entry.getKey(), druidType.sqlType);
+          columnTypeMap.put(entry.getKey(), druidType);
         }
         if (o.aggregators != null) {
           for (Map.Entry<String, JsonAggregator> entry
