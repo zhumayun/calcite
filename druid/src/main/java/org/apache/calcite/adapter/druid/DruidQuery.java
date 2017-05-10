@@ -807,7 +807,7 @@ public class DruidQuery extends AbstractRelNode implements BindableRel {
     switch (aggCall.getAggregation().getKind()) {
     case COUNT:
       if (aggCall.isDistinct()) {
-        DruidType druidType = druidTable.columnTypes.get(name);
+        DruidType druidType = druidTable.columnTypes.get(only);
         if (druidType != null) {
           switch (druidType) {
           case thetaSketch:
