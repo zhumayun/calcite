@@ -79,7 +79,8 @@ public class DruidTable extends AbstractTable implements TranslatableTable {
     this.metricFieldNames = ImmutableSet.copyOf(metricFieldNames);
     this.intervals = intervals != null ? ImmutableList.copyOf(intervals)
         : ImmutableList.of(DEFAULT_INTERVAL);
-    this.columnTypes = ImmutableMap.copyOf(columnTypes);
+    this.columnTypes = columnTypes != null ? ImmutableMap.copyOf(columnTypes)
+        : ImmutableMap.<String, DruidType>of();
   }
 
   /** Creates a {@link DruidTable}
