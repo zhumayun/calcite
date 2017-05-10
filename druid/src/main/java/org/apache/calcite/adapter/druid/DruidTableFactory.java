@@ -65,6 +65,8 @@ public class DruidTableFactory implements TableFactory {
       final List<String> dimensions = (List<String>) dimensionsRaw;
       for (String dimension : dimensions) {
         fieldBuilder.put(dimension, SqlTypeName.VARCHAR);
+        // Druid dimensions are type STRING by default
+        typeBuilder.put(dimension, DruidType.STRING);
       }
     }
     final Object metricsRaw = operand.get("metrics");
@@ -74,6 +76,7 @@ public class DruidTableFactory implements TableFactory {
         final SqlTypeName sqlTypeName;
         final String metricName;
         final String metricField;
+        DruidType druidType = DruidType.LONG;
         if (metric instanceof Map) {
           Map map2 = (Map) metric;
           if (!(map2.get("name") instanceof String)) {
@@ -86,18 +89,23 @@ public class DruidTableFactory implements TableFactory {
             sqlTypeName = SqlTypeName.BIGINT;
           } else if ("double".equals(type)) {
             sqlTypeName = SqlTypeName.DOUBLE;
+            druidType = DruidType.FLOAT;
           } else {
             sqlTypeName = SqlTypeName.BIGINT;
+            if ("thetaSketch".equals(type)) {
+              druidType = DruidType.thetaSketch;
+            } else if ("hyperUnique".equals(type)) {
+              druidType = DruidType.hyperUnique;
+            }
           }
-          typeBuilder.put(metricField != null ? metricField
-                  : metricName,
-                  DruidType.valueOf((String) type));
         } else {
           metricName = (String) metric;
+          metricField = metricName;
           sqlTypeName = SqlTypeName.BIGINT;
         }
         fieldBuilder.put(metricName, sqlTypeName);
         metricNameBuilder.add(metricName);
+        typeBuilder.put(metricField != null ? metricField : metricName, druidType);
       }
     }
     final String dataSourceName = Util.first(dataSource, name);
