@@ -2111,6 +2111,24 @@ public class DruidAdapterIT {
         + "\"product_id\" = 1558 and (true or false)";
     sql(sql).returnsUnordered("C=60").queryContains(druidChecker("'queryType':'timeseries'"));
   }
+
+  /** Tests that the aggregate in the druid query
+   * is of type hyperUnique rather than cardinality */
+  @Test public void testHyperUniqueAggregateProduced() {
+    String sql = "select count(distinct \"user_unique\") as users from \"wiki\"";
+    String aggString = "{'type':'hyperUnique','name':'USERS','fieldName':'user_unique'}";
+    sql(sql, WIKI)
+      .queryContains(druidChecker(aggString));
+  }
+
+  /** Tests that the aggregate in the druid query
+   * is indeed of type cardinality (not hyperUnique or thetaSketch) */
+  @Test public void testCardinalityAggregateProduced() {
+    String sql = "select count(distinct \"added\") as \"added\" from \"wiki\"";
+    String aggString = "{'type':'cardinality','name':'added','fieldNames':['added']}";
+    sql(sql, WIKI)
+      .queryContains(druidChecker(aggString));
+  }
 }
 
 // End DruidAdapterIT.java

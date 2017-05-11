@@ -75,7 +75,6 @@ public class DruidTableFactory implements TableFactory {
       for (Object metric : metrics) {
         final SqlTypeName sqlTypeName;
         final String metricName;
-        final String metricField;
         DruidType druidType = DruidType.LONG;
         if (metric instanceof Map) {
           Map map2 = (Map) metric;
@@ -83,7 +82,6 @@ public class DruidTableFactory implements TableFactory {
             throw new IllegalArgumentException("metric must have name");
           }
           metricName = (String) map2.get("name");
-          metricField = (String) map2.get("fieldName");
           final Object type = map2.get("type");
           if ("long".equals(type)) {
             sqlTypeName = SqlTypeName.BIGINT;
@@ -100,12 +98,11 @@ public class DruidTableFactory implements TableFactory {
           }
         } else {
           metricName = (String) metric;
-          metricField = metricName;
           sqlTypeName = SqlTypeName.BIGINT;
         }
         fieldBuilder.put(metricName, sqlTypeName);
         metricNameBuilder.add(metricName);
-        typeBuilder.put(metricField != null ? metricField : metricName, druidType);
+        typeBuilder.put(metricName, druidType);
       }
     }
     final String dataSourceName = Util.first(dataSource, name);
