@@ -2121,6 +2121,17 @@ public class DruidAdapterIT {
       .queryContains(druidChecker(aggString));
   }
 
+  /**
+   * Tests that non distinct count aggregates don't use the hyperUnique type
+   * for metrics with type hyperUnique
+   **/
+  @Test public void testNonDistinctCountAggregateProduced() {
+    String sql = "select count(\"user_unique\") as users from \"wiki\"";
+    String aggString = "{'type':'count','name':'USERS','fieldName':'user_unique'}";
+    sql(sql, WIKI)
+      .queryContains(druidChecker(aggString));
+  }
+
   /** Tests that the aggregate in the druid query
    * is indeed of type cardinality (not hyperUnique or thetaSketch) */
   @Test public void testCardinalityAggregateProduced() {
