@@ -2121,10 +2121,8 @@ public class DruidAdapterIT {
       .queryContains(druidChecker(aggString));
   }
 
-  /**
-   * Tests that non distinct count aggregates don't use the hyperUnique type
-   * for metrics with type hyperUnique
-   **/
+  /** Tests that non distinct count aggregates don't use the hyperUnique type
+   * for metrics with type hyperUnique */
   @Test public void testNonDistinctCountAggregateProduced() {
     String sql = "select count(\"user_unique\") as users from \"wiki\"";
     String aggString = "{'type':'count','name':'USERS','fieldName':'user_unique'}";
