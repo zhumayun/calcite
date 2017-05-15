@@ -2134,7 +2134,7 @@ public class DruidAdapterIT {
 
   /** Tests that non distinct count aggregates don't use the hyperUnique type
    * for metrics with type hyperUnique */
-  @Test public void testNonDistinctCountAggregateProduced() {
+  @Test public void testNonDistinctCountAggregateProducedForHU() {
     String sql = "select count(\"user_unique\") as users from \"wiki\"";
     String aggString = "{'type':'count','name':'USERS','fieldName':'user_unique'}";
     sql(sql, WIKI)
@@ -2149,6 +2149,25 @@ public class DruidAdapterIT {
     sql(sql, WIKI)
       .queryContains(druidChecker(aggString));
   }
+
+  /** Tests that the aggregate in the druid query
+   * is of type thetaSketch for the metric that is declared as type thetaSketch */
+  @Test public void testThetaSketchAggregateProduced() {
+    String sql = "select count(distinct \"user_unique\") as users from \"foodmart\"";
+    String aggString = "{'type':'thetaSketch','name':'USERS','fieldName':'user_unique'}";
+    sql(sql, FOODMART)
+      .queryContains(druidChecker(aggString));
+  }
+
+  /** Tests that non distinct count aggregates don't use the thetaSketch type
+   * for metrics with type thetaSketch */
+  @Test public void testNonDistinctCountAggregateProducedForTS () {
+    String sql = "select count(\"user_unique\") as users from \"foodmart\"";
+    String aggString = "{'type':'count','name':'USERS','fieldName':'user_unique'}";
+    sql(sql, FOODMART)
+            .queryContains(druidChecker(aggString));
+  }
+
   /** Test case for
    * <a href="https://issues.apache.org/jira/browse/CALCITE-1769">[CALCITE-1769]
    * Druid adapter: Push down filters involving numeric cast of literals</a>. */
