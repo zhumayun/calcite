@@ -208,8 +208,9 @@ public class DruidQuery extends AbstractRelNode implements BindableRel {
   boolean isValidFilter(RexNode e, boolean boundedComparator) {
     switch (e.getKind()) {
     case INPUT_REF:
-    case LITERAL:
       return true;
+    case LITERAL:
+      return ((RexLiteral) e).getValue() != null;
     case AND:
     case OR:
     case NOT:
@@ -970,10 +971,6 @@ public class DruidQuery extends AbstractRelNode implements BindableRel {
       case CAST:
         return tr(e, 0, set);
       case LITERAL:
-        if (((RexLiteral) e).getValue3() == null) {
-          // Druid considers null is equivalent to empty.
-          return "";
-        }
         return ((RexLiteral) e).getValue3().toString();
       case FLOOR:
       case EXTRACT:

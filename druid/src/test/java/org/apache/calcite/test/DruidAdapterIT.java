@@ -19,10 +19,17 @@ package org.apache.calcite.test;
 import org.apache.calcite.adapter.druid.DruidQuery;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteConnectionProperty;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.sql.fun.SqlStdOperatorTable;
+import org.apache.calcite.sql.type.SqlTypeName;
+import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.util.Util;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 
@@ -2097,8 +2104,12 @@ public class DruidAdapterIT {
         + "from \"foodmart\"\n"
         + "where \"product_id\" = cast(NULL as varchar)\n"
         + "group by \"product_id\"";
-    String druidQuery = "'filter':{'type':'selector','dimension':'product_id','value':''}";
-    sql(sql).queryContains(druidChecker(druidQuery));
+    final String plan = "PLAN=EnumerableInterpreter\n"
+        + "  BindableAggregate(group=[{0}])\n"
+        + "    BindableFilter(condition=[=($0, null)])\n"
+        + "      DruidQuery(table=[[foodmart, foodmart]], "
+        + "intervals=[[1900-01-09T00:00:00.000/2992-01-10T00:00:00.000]], projects=[[$1]])";
+    sql(sql).explainContains(plan);
   }
 
   @Test public void testFalseFilter() {
@@ -2137,6 +2148,56 @@ public class DruidAdapterIT {
     String aggString = "{'type':'cardinality','name':'added','fieldNames':['added']}";
     sql(sql, WIKI)
       .queryContains(druidChecker(aggString));
+  }
+  /** Test case for
+   * <a href="https://issues.apache.org/jira/browse/CALCITE-1769">[CALCITE-1769]
+   * Druid adapter: Push down filters involving numeric cast of literals</a>. */
+  @Test public void testPushCastNumeric() {
+    String druidQuery = "'filter':{'type':'bound','dimension':'product_id',"
+        + "'upper':'10','upperStrict':true,'ordering':'numeric'}";
+    sql("?")
+        .withRel(new Function<RelBuilder, RelNode>() {
+          public RelNode apply(RelBuilder b) {
+            // select product_id
+            // from foodmart.foodmart
+            // where product_id < cast(10 as varchar)
+            final RelDataType intType =
+                b.getTypeFactory().createSqlType(SqlTypeName.INTEGER);
+            return b.scan("foodmart", "foodmart")
+                .filter(
+                    b.call(SqlStdOperatorTable.LESS_THAN,
+                        b.getRexBuilder().makeCall(intType,
+                            SqlStdOperatorTable.CAST,
+                            ImmutableList.<RexNode>of(b.field("product_id"))),
+                        b.getRexBuilder().makeCall(intType,
+                            SqlStdOperatorTable.CAST,
+                            ImmutableList.of(b.literal("10")))))
+                .project(b.field("product_id"))
+                .build();
+          }
+        })
+        .queryContains(druidChecker(druidQuery));
+  }
+
+  @Test public void testPushFieldEqualsLiteral() {
+    sql("?")
+        .withRel(new Function<RelBuilder, RelNode>() {
+          public RelNode apply(RelBuilder b) {
+            // select count(*) as c
+            // from foodmart.foodmart
+            // where product_id = 'id'
+            return b.scan("foodmart", "foodmart")
+                .filter(
+                    b.call(SqlStdOperatorTable.EQUALS, b.field("product_id"),
+                        b.literal("id")))
+                .aggregate(b.groupKey(), b.countStar("c"))
+                .build();
+          }
+        })
+        // Should return one row, "c=0"; logged
+        // [CALCITE-1775] "GROUP BY ()" on empty relation should return 1 row
+        .returnsUnordered()
+        .queryContains(druidChecker("'queryType':'timeseries'"));
   }
 }
 
