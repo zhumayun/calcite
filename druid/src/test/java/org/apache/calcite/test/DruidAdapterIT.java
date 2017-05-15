@@ -365,10 +365,10 @@ public class DruidAdapterIT {
                   }
                   // 1 timestamp, 2 float measure, 1 int measure, 88 dimensions
                   assertThat(map.keySet().size(), is(4));
-                  assertThat(map.values().size(), is(92));
+                  assertThat(map.values().size(), is(93));
                   assertThat(map.get("TIMESTAMP(0)").size(), is(1));
                   assertThat(map.get("DOUBLE").size(), is(2));
-                  assertThat(map.get("BIGINT").size(), is(1));
+                  assertThat(map.get("BIGINT").size(), is(2));
                   assertThat(map.get(VARCHAR_TYPE).size(), is(88));
                 } catch (SQLException e) {
                   throw new RuntimeException(e);
@@ -776,7 +776,7 @@ public class DruidAdapterIT {
         + "'store_fax','first_opened_date','last_remodel_date','store_sqft','grocery_sqft','frozen_sqft',"
         + "'meat_sqft','coffee_bar','video_store','salad_bar','prepared_food','florist','time_id','the_day',"
         + "'the_month','the_year','day_of_month','week_of_year','month_of_year','quarter','fiscal_period'],"
-        + "'metrics':['unit_sales','store_sales','store_cost'],'granularity':'all',"
+        + "'metrics':['unit_sales','store_sales','store_cost','user_unique'],'granularity':'all',"
         + "'pagingSpec':{'threshold':16384,'fromNext':true},'context':{'druid.query.fetch':false}}";
     sql(sql)
         .limit(4)
@@ -822,7 +822,7 @@ public class DruidAdapterIT {
         + "'store_fax','first_opened_date','last_remodel_date','store_sqft','grocery_sqft','frozen_sqft',"
         + "'meat_sqft','coffee_bar','video_store','salad_bar','prepared_food','florist','time_id','the_day',"
         + "'the_month','the_year','day_of_month','week_of_year','month_of_year','quarter','fiscal_period'],"
-        + "'metrics':['unit_sales','store_sales','store_cost'],'granularity':'all',"
+        + "'metrics':['unit_sales','store_sales','store_cost','user_unique'],'granularity':'all',"
         + "'pagingSpec':{'threshold':16384,'fromNext':true},'context':{'druid.query.fetch':false}}";
     sql(sql)
         .limit(4)
@@ -870,7 +870,7 @@ public class DruidAdapterIT {
         + "'frozen_sqft','meat_sqft','coffee_bar','video_store','salad_bar','prepared_food',"
         + "'florist','time_id','the_day','the_month','the_year','day_of_month',"
         + "'week_of_year','month_of_year','quarter','fiscal_period'],"
-        + "'metrics':['unit_sales','store_sales','store_cost'],'granularity':'all',"
+        + "'metrics':['unit_sales','store_sales','store_cost','user_unique'],'granularity':'all',"
         + "'pagingSpec':{'threshold':16384,'fromNext':true},'context':{'druid.query.fetch':false}}";
     sql(sql)
         .limit(4)
@@ -900,7 +900,7 @@ public class DruidAdapterIT {
         + "'store_fax','first_opened_date','last_remodel_date','store_sqft','grocery_sqft','frozen_sqft',"
         + "'meat_sqft','coffee_bar','video_store','salad_bar','prepared_food','florist','time_id','the_day',"
         + "'the_month','the_year','day_of_month','week_of_year','month_of_year','quarter','fiscal_period'],"
-        + "'metrics':['unit_sales','store_sales','store_cost'],'granularity':'all',"
+        + "'metrics':['unit_sales','store_sales','store_cost','user_unique'],'granularity':'all',"
         + "'pagingSpec':{'threshold':16384,'fromNext':true},'context':{'druid.query.fetch':false}}";
     sql(sql)
         .limit(4)
