@@ -2161,7 +2161,7 @@ public class DruidAdapterIT {
 
   /** Tests that non distinct count aggregates don't use the thetaSketch type
    * for metrics with type thetaSketch */
-  @Test public void testNonDistinctCountAggregateProducedForTS () {
+  @Test public void testNonDistinctCountAggregateProducedForTS() {
     String sql = "select count(\"user_unique\") as users from \"foodmart\"";
     String aggString = "{'type':'count','name':'USERS','fieldName':'user_unique'}";
     sql(sql, FOODMART)
