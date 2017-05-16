@@ -658,7 +658,7 @@ class DruidConnectionImpl implements DruidConnection {
     FLOAT(SqlTypeName.DOUBLE),
     STRING(SqlTypeName.VARCHAR),
     hyperUnique(SqlTypeName.VARBINARY),
-    thetaSketch(SqlTypeName.BIGINT);
+    thetaSketch(SqlTypeName.VARBINARY);
 
     /** The corresponding SQL type. */
     public final SqlTypeName sqlType;
