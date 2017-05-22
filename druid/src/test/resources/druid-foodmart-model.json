@@ -133,11 +133,11 @@
                 "name": "store_cost",
                 "type": "double"
               },
-			  {
-			  	"name" : "user_unique",
-				"type" : "thetaSketch",
-			    "fieldName" : "customer_id"	
-			  }
+              {
+                "name" : "user_unique",
+                "type" : "thetaSketch",
+                "fieldName" : "customer_id"	
+              }
             ]
           }
         }
