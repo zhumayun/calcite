@@ -2123,6 +2123,51 @@ public class DruidAdapterIT {
     sql(sql).returnsUnordered("C=60").queryContains(druidChecker("'queryType':'timeseries'"));
   }
 
+  /** Tests that the aggregate in the druid query
+   * is of type hyperUnique rather than cardinality */
+  @Test public void testHyperUniqueAggregateProduced() {
+    String sql = "select count(distinct \"user_unique\") as users from \"wiki\"";
+    String aggString = "{'type':'hyperUnique','name':'USERS','fieldName':'user_unique'}";
+    sql(sql, WIKI)
+      .queryContains(druidChecker(aggString));
+  }
+
+  /** Tests that non distinct count aggregates don't use the hyperUnique type
+   * for metrics with type hyperUnique */
+  @Test public void testNonDistinctCountAggregateProducedForHU() {
+    String sql = "select count(\"user_unique\") as users from \"wiki\"";
+    String aggString = "{'type':'count','name':'USERS','fieldName':'user_unique'}";
+    sql(sql, WIKI)
+      .queryContains(druidChecker(aggString));
+  }
+
+  /** Tests that the aggregate in the druid query
+   * is indeed of type cardinality (not hyperUnique or thetaSketch) */
+  @Test public void testCardinalityAggregateProduced() {
+    String sql = "select count(distinct \"added\") as \"added\" from \"wiki\"";
+    String aggString = "{'type':'cardinality','name':'added','fieldNames':['added']}";
+    sql(sql, WIKI)
+      .queryContains(druidChecker(aggString));
+  }
+
+  /** Tests that the aggregate in the druid query
+   * is of type thetaSketch for the metric that is declared as type thetaSketch */
+  @Test public void testThetaSketchAggregateProduced() {
+    String sql = "select count(distinct \"user_unique\") as users from \"foodmart\"";
+    String aggString = "{'type':'thetaSketch','name':'USERS','fieldName':'user_unique'}";
+    sql(sql, FOODMART)
+      .queryContains(druidChecker(aggString));
+  }
+
+  /** Tests that non distinct count aggregates don't use the thetaSketch type
+   * for metrics with type thetaSketch */
+  @Test public void testNonDistinctCountAggregateProducedForTS() {
+    String sql = "select count(\"user_unique\") as users from \"foodmart\"";
+    String aggString = "{'type':'count','name':'USERS','fieldName':'user_unique'}";
+    sql(sql, FOODMART)
+            .queryContains(druidChecker(aggString));
+  }
+
   /** Test case for
    * <a href="https://issues.apache.org/jira/browse/CALCITE-1769">[CALCITE-1769]
    * Druid adapter: Push down filters involving numeric cast of literals</a>. */
