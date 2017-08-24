@@ -1020,8 +1020,8 @@ public class SqlParserTest {
 
   @Test public void testOverlaps() {
     final String[] ops = {
-      "overlaps", "equals", "precedes", "succeeds",
-      "immediately precedes", "immediately succeeds"
+        "overlaps", "equals", "precedes", "succeeds",
+        "immediately precedes", "immediately succeeds"
     };
     final String[] periods = {"period ", ""};
     for (String period : periods) {
@@ -7269,7 +7269,7 @@ public class SqlParserTest {
 
 
     check("alter system set \"a\".\"number\" = 1",
-      "ALTER SYSTEM SET `a`.`number` = 1");
+        "ALTER SYSTEM SET `a`.`number` = 1");
     sql("set approx = -12.3450")
         .ok("SET `APPROX` = -12.3450")
         .node(isDdl());
@@ -8005,6 +8005,34 @@ public class SqlParserTest {
         + "AVG(`STDN`.`PRICE`) AS `STDN_AVG`\n"
         + "ALL ROWS PER MATCH\n"
         + "PATTERN (((`STRT` (`DOWN` +)) (`UP` +)))\n"
+        + "SUBSET (`STDN` = (`STRT`, `DOWN`)), (`STDN2` = (`STRT`, `DOWN`))\n"
+        + "DEFINE `DOWN` AS (`DOWN`.`PRICE` < PREV(`DOWN`.`PRICE`, 1)), "
+        + "`UP` AS (`UP`.`PRICE` > PREV(`UP`.`PRICE`, 1))"
+        + ") AS `MR`";
+    sql(sql).ok(expected);
+  }
+
+  @Test public void testMatchRecognizeWithin() {
+    final String sql = "select *\n"
+        + "  from t match_recognize\n"
+        + "  (\n"
+        + "    order by rowtime\n"
+        + "    measures STRT.ts as start_ts,\n"
+        + "      LAST(DOWN.ts) as bottom_ts,\n"
+        + "      AVG(stdn.price) as stdn_avg\n"
+        + "    pattern (strt down+ up+) within interval '3' second\n"
+        + "    subset stdn = (strt, down), stdn2 = (strt, down)\n"
+        + "    define\n"
+        + "      down as down.price < PREV(down.price),\n"
+        + "      up as up.price > prev(up.price)\n"
+        + "  ) mr";
+    final String expected = "SELECT *\n"
+        + "FROM `T` MATCH_RECOGNIZE(\n"
+        + "ORDER BY `ROWTIME`\n"
+        + "MEASURES `STRT`.`TS` AS `START_TS`, "
+        + "LAST(`DOWN`.`TS`, 0) AS `BOTTOM_TS`, "
+        + "AVG(`STDN`.`PRICE`) AS `STDN_AVG`\n"
+        + "PATTERN (((`STRT` (`DOWN` +)) (`UP` +))) WITHIN INTERVAL '3' SECOND\n"
         + "SUBSET (`STDN` = (`STRT`, `DOWN`)), (`STDN2` = (`STRT`, `DOWN`))\n"
         + "DEFINE `DOWN` AS (`DOWN`.`PRICE` < PREV(`DOWN`.`PRICE`, 1)), "
         + "`UP` AS (`UP`.`PRICE` > PREV(`UP`.`PRICE`, 1))"
